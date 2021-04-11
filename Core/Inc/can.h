@@ -9,6 +9,7 @@
 #define INC_CAN_H_
 
 #include "stm32f0xx_hal.h"
+#include <stdio.h>
 
 /*
 Los datos transmitidos comprenderan de un valor de humedad y uno de temperatura
@@ -41,17 +42,17 @@ typedef enum can_control {
 } can_error;
 
 
-typedef can_tx_packet CAN_TxHeaderTypeDef;
-typedef can_rx_packet CAN_RxHeaderTypeDef;
+typedef CAN_TxHeaderTypeDef can_tx_packet;
+typedef CAN_RxHeaderTypeDef can_rx_packet;
 
 /* Para el bus can, solamente basta con typedef */
-typedef can_handle CAN_HandleTypeDef;
+typedef CAN_HandleTypeDef can_handle;
 
 /* Almacena mailboxes activos */
-uint32_t tx_mailboxes = 0;
-uint32_t rx_fifo = 0;
+static uint32_t tx_mailboxes = 0;
+static uint32_t rx_fifo = 0;
 
-int can_write_to_mailbox(can_handle* handle, void* data, int bytes);
-can_packet can_get_from_fifo(can_handle* handle, void* data);
+uint32_t can_write_to_mailbox(can_handle* handle, void* data, int bytes);
+uint32_t can_get_from_fifo(can_handle* handle, void* data[]);
 
 #endif /* INC_CAN_H_ */

@@ -47,7 +47,7 @@ int read_temp_adc(adc_handle* handle, float* temp)
 	//10 mV/°C
 	//12 bits
 	//VER DOCUMENTACIÓN, AHI ESTA EL CALCULO
-	temp = 0.1
+	*temp = 0.1;
 
 	*temp = 1;
 
@@ -70,6 +70,7 @@ int read_temp_internal(float* temp)
 //Alternativa superior, pero pierde compatibilidad con PLC
 //Si surge el interes a que quiero decir, revisar la datasheet del
 //ATtiny 84, sección 15: 'Analog Comparator'
+/*
 ISR( INT0_vect )
 {
   //WOW
@@ -145,3 +146,5 @@ double interpRH(uint16_t timerValue) {
   newRH = ( (cap - LUT[il]) * (ig*5.f - il*5.f) ) / (LUT[ig] - LUT[il]) + il*5.f;
   return newRH;
 }
+
+*/

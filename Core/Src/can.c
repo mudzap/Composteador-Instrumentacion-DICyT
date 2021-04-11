@@ -17,12 +17,12 @@ uint32_t can_write_to_mailbox(can_handle* handle, void* data, int bytes)
 
   if(bytes > CAN_MAX_BYTES) {
 	  printf("CAN-TX: Se intentaron enviar %d bytes, el maximo es %d.\n", bytes, CAN_MAX_BYTES);
-	  return handle.ErrorCode;
+	  return handle->ErrorCode;
   }
 
   if(HAL_CAN_GetTxMailboxesFreeLevel(handle) > 0)
   {
-	  if(HAL_CAN_AddTxMessage(handle, packet, data, tx_mailboxes) != HAL_CAN_ERROR_NONE)
+	  if(HAL_CAN_AddTxMessage(handle, &packet, data, tx_mailboxes) != HAL_CAN_ERROR_NONE)
 	  {
 		  Error_Handler();
 	  }
@@ -33,20 +33,20 @@ uint32_t can_write_to_mailbox(can_handle* handle, void* data, int bytes)
 	  printf("CAN-TX: Mailboxes llenos, no enviando los siguientes datos: 0x");
 	  for(int i = 0; i < packet.DLC; i++)
 	  {
-	     printf("%X", data[i]);
+	     //printf("%X", data[i]*);
 	  }
 	  printf("\n");
   }
 
-  return handle.ErrorCode;
+  return handle->ErrorCode;
 }
 
 uint32_t can_get_from_fifo(can_handle* handle, void* data[])
 {
-	rx_packet packet;
+	can_rx_packet packet;
 
 	uint32_t rx_fill_level;
-	if(rx_fill_level = HAL_CAN_GetRxFillLevel(handle, rx_fifo) > 0)
+	if(rx_fill_level = HAL_CAN_GetRxFifoFillLevel(handle, rx_fifo) > 0)
 	{
 		for(int i = 0; i < rx_fill_level; i++)
 		{
@@ -61,7 +61,6 @@ uint32_t can_get_from_fifo(can_handle* handle, void* data[])
 			 */
 		}
 	}
-	can_rx_packet packet = HAL_CAN_Receive();
 
 	return rx_fill_level; /* Regresa el numero de datos recibidos, para procesarlos */
 

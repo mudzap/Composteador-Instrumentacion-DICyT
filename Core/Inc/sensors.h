@@ -2,7 +2,7 @@
  *
  *
  *  Created on: Apr 8, 2021
- *      Author: Iván Guillermo Peña Flore
+ *      Author: Iván Guillermo Peña Flores
  */
 
 typedef enum temp_error {

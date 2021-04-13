@@ -1,4 +1,5 @@
-/* sensors.h
+/* @file	sensors.h
+ * @brief	Header file for sensors.c
  *
  *  Created on: Apr 10, 2021
  *      Author: Iván Guillermo Peña Flores

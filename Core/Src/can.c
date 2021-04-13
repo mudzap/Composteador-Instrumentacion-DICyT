@@ -1,5 +1,6 @@
-/*
- * can.c
+/**
+ * @file 	can.c
+ * @brief	Abstracts read and write functionality of the CAN bus
  *
  *  Created on: Apr 8, 2021
  *      Author: Iván Guillermo Peña Flores
@@ -7,6 +8,14 @@
 
 #include "can.h"
 
+/**
+ * @brief	Writes the content from a data buffer into the mailbox, to be sent in the CAN bus
+ * @param	can_handle*: Pointer to a handle to a CAN object, typedefs CAN_HandleTypeDef
+ * @param	uint8_t*: Pointer to the data buffer
+ * @param	int: Number of bytes to write, can't be larger than CAN_MAX_BYTES
+ *
+ * @retval	CAN error
+ */
 uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes)
 {
   can_tx_packet packet;
@@ -41,6 +50,13 @@ uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes)
   return handle->ErrorCode;
 }
 
+/**
+ * @brief	Reads the content from a CAN FIFO buffer into a given data buffer
+ * @param	can_handle*: Pointer to a handle to a CAN object, typedefs CAN_HandleTypeDef
+ * @param	uint8_t*: Pointer to the data buffer
+ *
+ * @retval	CAN error
+ */
 uint32_t can_get_from_fifo(can_handle* handle, uint8_t* data[])
 {
 	can_rx_packet packet;

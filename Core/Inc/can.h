@@ -1,5 +1,6 @@
 /*
- * can.h
+ * @file	can.h
+ * @brief	Header file for can.c
  *
  *  Created on: Apr 8, 2021
  *      Author: Iván Guillermo Peña Flores

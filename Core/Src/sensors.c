@@ -1,5 +1,6 @@
 /*
- * sensors.c
+ * @file 	sensors.c
+ * @brief	Abstraction layer for sensor readings
  *
  *  Created on: Apr 10, 2021
  *      Author: Iván Guillermo Peña Flores
@@ -16,12 +17,30 @@
 
 #include "sensors.h"
 
+/* ESTOY CONSIDERANDO CAMBIAR QUE RETORNEN POR COPIA, NO POR REFERENCIA, PARA ASI
+ * EVITAR HACIENDO DEREFERENCIAS CONSTANTES
+ */
+
+/**
+ * @brief	Reads data from both the humidity and temperature sensors.
+ * @param	MAYBE? STILL NOT IMPLEMENTED, SHOULD BE HANDLE OBJETS
+ *
+ * @retval	Sensor error
+ */
 int read_sensors()
 {
 	temperature = get_temp();
 	rel_humidity = get_rh();
 }
 
+/**
+ * @brief	Reads data from the temperature sensor, handles any possible errors
+ * 			and falls back to the internal temperature sensor in case the ADC fails.
+ * @param	adc_handle*: Pointer to ADC handle object
+ * @param	float*: Pointer to float to store temperature
+ *
+ * @retval	Sensor error
+ */
 int read_temp(adc_handle* handle, float* temp)
 {
 
@@ -39,6 +58,13 @@ int read_temp(adc_handle* handle, float* temp)
 	return TEMP_OK;
 }
 
+/**
+ * @brief	Reads data from the temperature sensor utilizing an ADC
+ * @param	adc_handle*: Pointer to ADC handle object
+ * @param	float*: Pointer to float to store temperature
+ *
+ * @retval	Sensor error
+ */
 int read_temp_adc(adc_handle* handle, float* temp)
 {
 	//READ V_REF ADC
@@ -54,6 +80,12 @@ int read_temp_adc(adc_handle* handle, float* temp)
 	return TEMP_OK;
 }
 
+/**
+ * @brief	Reads data from the internal temperature sensor,
+ * @param	float*: Pointer to float to store temperature
+ *
+ * @retval	Sensor error
+ */
 int read_temp_internal(float* temp)
 {
 	return TEMP_OK;
@@ -62,6 +94,7 @@ int read_temp_internal(float* temp)
 /*
  *
  * 	TODO DE AQUI EN ADELANTE NO HA SIDO TRADUCIDO
+ * 	PERO SI PARCIALMENTE DOCUMENTADO
  *
  */
 
@@ -75,6 +108,7 @@ ISR( INT0_vect )
 {
   //WOW
   //if (conditionChecker.checkConditional(cond.tostr() == 'true' && cond.tostr() != 'false'))
+  //no hagan esto pls
   trigger();
 }
 
@@ -117,8 +151,18 @@ void getTemp() {
   //TRANSLATE TO VOLTAGE
   temp = (REF_V * reading)/1024.f;
 }
+*/
 
-double interpRH(uint16_t timerValue) {
+/**
+ * @brief	Obtains and returns the RH% by means of interpolation by using data
+ * 			from the LUT.
+ * @param	uint32_t: Timer data
+ * @param	float*: Pointer to float to store RH%
+ *
+ * @retval	Sensor error
+ */
+/*
+int interpRH(uint32_t timerValue, float* rh) {
   double realTime = timerValue*CLOCK_RATE;
   double charge = realTime*CHARGE_CURRENT;
   double cap = charge/(SUPPLY_V - REF_V);
@@ -142,9 +186,9 @@ double interpRH(uint16_t timerValue) {
 
   il = ig - 1;
 
-  double newRH = 0;
-  newRH = ( (cap - LUT[il]) * (ig*5.f - il*5.f) ) / (LUT[ig] - LUT[il]) + il*5.f;
-  return newRH;
+  double new_rh = 0;
+  new_rh = ( (cap - LUT[il]) * (ig*5.f - il*5.f) ) / (LUT[ig] - LUT[il]) + il*5.f;
+  *rh = new_rh;
 }
 
 */

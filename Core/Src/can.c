@@ -7,7 +7,7 @@
 
 #include "can.h"
 
-uint32_t can_write_to_mailbox(can_handle* handle, void* data, int bytes)
+uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes)
 {
   can_tx_packet packet;
   packet.StdId = 0x02; //Identificador estandar con prioridad 2
@@ -22,7 +22,7 @@ uint32_t can_write_to_mailbox(can_handle* handle, void* data, int bytes)
 
   if(HAL_CAN_GetTxMailboxesFreeLevel(handle) > 0)
   {
-	  if(HAL_CAN_AddTxMessage(handle, &packet, data, tx_mailboxes) != HAL_CAN_ERROR_NONE)
+	  if(HAL_CAN_AddTxMessage(handle, &packet, data, &tx_mailboxes) != HAL_CAN_ERROR_NONE)
 	  {
 		  Error_Handler();
 	  }
@@ -33,7 +33,7 @@ uint32_t can_write_to_mailbox(can_handle* handle, void* data, int bytes)
 	  printf("CAN-TX: Mailboxes llenos, no enviando los siguientes datos: 0x");
 	  for(int i = 0; i < packet.DLC; i++)
 	  {
-	     //printf("%X", data[i]*);
+	     printf("%X", *(data + i) );
 	  }
 	  printf("\n");
   }
@@ -41,27 +41,31 @@ uint32_t can_write_to_mailbox(can_handle* handle, void* data, int bytes)
   return handle->ErrorCode;
 }
 
-uint32_t can_get_from_fifo(can_handle* handle, void* data[])
+uint32_t can_get_from_fifo(can_handle* handle, uint8_t* data[])
 {
 	can_rx_packet packet;
 
 	uint32_t rx_fill_level;
-	if(rx_fill_level = HAL_CAN_GetRxFifoFillLevel(handle, rx_fifo) > 0)
+	if( (rx_fill_level = HAL_CAN_GetRxFifoFillLevel(handle, rx_fifo)) > 0)
 	{
 		for(int i = 0; i < rx_fill_level; i++)
 		{
-			HAL_CAN_GetRxMessage(handle, rx_fifo, &packet, data[i]);
-			/* PARSE PACKET */
-			/*
-			 * CAN_CONTROL << CAN_CONTROL_START_TX... ETC...
-			 * if(ID != ID_ACCEPTABLE)....
-			 *
-			 * TODO ESTO DE LA DOCUMENTACIÓN DE CAN, PROBABLEMENTE
-			 * DESPUES DE ESTABLECER EL PROGRAMA DEL PANEL PRINCIPAL
-			 */
+			if(HAL_CAN_GetRxMessage(handle, rx_fifo, &packet, data[i]) != HAL_OK)
+			{
+				/* FAILED TO RECEIVE PACKET */
+				printf("CAN-RX: Failed to receive packet\n");
+				*data[i] = NO_DATA;
+			}
+			else
+			{
+				/* PARSE PACKET */
+				// Data already on array
+				//packet->DLC
+				//packet->...
+			}
+
 		}
 	}
 
-	return rx_fill_level; /* Regresa el numero de datos recibidos, para procesarlos */
-
+	return handle->ErrorCode;
 }

@@ -24,6 +24,7 @@ Aqui no es necesaria la precisión de 8 bytes, asi que se optara por un solo paq
 //#define CAN_TX_TIMEOUT 10
 //PARECE SER QUE NO SE UTILIZA EN EL HAL MODERNO, QUIZA NO SEA PROBLEMA
 #define CAN_MAX_BYTES 8
+#define NO_DATA 0x00U
 
 /* POSIBLEMENTE REDUNDANTE
 typedef enum can_error {
@@ -52,7 +53,7 @@ typedef CAN_HandleTypeDef can_handle;
 static uint32_t tx_mailboxes = 0;
 static uint32_t rx_fifo = 0;
 
-uint32_t can_write_to_mailbox(can_handle* handle, void* data, int bytes);
-uint32_t can_get_from_fifo(can_handle* handle, void* data[]);
+uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes);
+uint32_t can_get_from_fifo(can_handle* handle, uint8_t* data[]);
 
 #endif /* INC_CAN_H_ */

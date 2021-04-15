@@ -22,8 +22,5 @@ Software para el composteador desarrollado en la DICyT.
 ## Integrantes
 
 - Iván Guillermo Peña Flores (mudzap)
-<<<<<<< HEAD
 - Luis Ignacio Velásquez Casado 
-=======
 
->>>>>>> 849d194c112e55573d339f7493962add66b3fec6

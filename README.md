@@ -23,4 +23,4 @@ Software para el composteador desarrollado en la DICyT.
 
 - Iván Guillermo Peña Flores (mudzap)
 - Luis Ignacio Velásquez Casado 
-
+- José Omar Sánchez Coppola (apasin-josc)

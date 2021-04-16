@@ -1,4 +1,4 @@
-/*
+/**
  * @file	can.h
  * @brief	Header file for can.c
  *
@@ -36,6 +36,7 @@ typedef enum can_error {
   CAN_RX_OK
 } can_error;*/
 
+//Usar banderas de bits
 typedef enum can_control {
   CAN_CONTROL_START_TX,
   CAN_CONTROL_STOP_TX,

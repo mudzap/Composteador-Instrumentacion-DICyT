@@ -11,9 +11,9 @@
   * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
+  * This software component is licensed by ST under BSD 3-Clause license, */
+  /* * the "License"; You may not use this file except in compliance with the */
+  /* * License */. You may obtain a copy of the License at:
   *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
@@ -220,8 +220,9 @@ static void MX_ADC_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN ADC_Init 2 */
 
+  /* USER CODE BEGIN ADC_Init 2 */
+  HAL_ADCE1_Calibration_Start();
   /* USER CODE END ADC_Init 2 */
 
 }

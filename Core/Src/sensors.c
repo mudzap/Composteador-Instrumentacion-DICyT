@@ -1,6 +1,6 @@
-/*
- * @file 	sensors.c
- * @brief	Abstraction layer for sensor readings
+/**
+ *  @file 	sensors.c
+ *  @brief	Abstraction layer for sensor readings
  *
  *  Created on: Apr 10, 2021
  *      Author: Iván Guillermo Peña Flores
@@ -18,44 +18,58 @@
 #include "sensors.h"
 
 /* ESTOY CONSIDERANDO CAMBIAR QUE RETORNEN POR COPIA, NO POR REFERENCIA, PARA ASI
- * EVITAR HACIENDO DEREFERENCIAS CONSTANTES
+ * EVITAR HACIENDO DEREFERENCIAS CONSTANTES, O DE OTRA FORMA, ALMACENARLO EN
+ * VARIABLES ESTATICAS GLOBALES
  */
 
 /**
  * @brief	Reads data from both the humidity and temperature sensors.
- * @param	MAYBE? STILL NOT IMPLEMENTED, SHOULD BE HANDLE OBJETS
+ *              The humidity sensor should have priority, since it is very
+ *              dependant on the timer, and so, will be managed by means of
+ *              an interrupt or callback function.
+ * @param	pointer to sensors_handle: Handle struct containing the
+ *              handle to both the timer and adc components.
+ * @param       pointer to float storing temperature (might use static global)
+ * @param       pointer to float storing rh (ditto)
  *
- * @retval	Sensor error
+ * @retval	Sensor read error flags
  */
-int read_sensors()
+sensor_error read_sensors(sensors_handle* handle, float* temp, float* rh)
 {
-	temperature = get_temp();
-	rel_humidity = get_rh();
+  
+  temp_read_error = get_temp(&handle->adc_handle);
+  rh_read_error = get_rh(&handle->tim_handle);
+
+  sensor_error_flags = 0;
+  if(temp_read_error != TEMP_OK) {
+    sensor_error_flags |= TEMP_SENSOR_FAIL;  
+  }
+  if(rh_read_error != HUM_OK) {
+    sensor_error_flags |= HUM_SENSOR_FAIL;
+  }
+
+  return sensor_error_flags
 }
 
 /**
  * @brief	Reads data from the temperature sensor, handles any possible errors
- * 			and falls back to the internal temperature sensor in case the ADC fails.
+ * 		and falls back to the internal temperature sensor in case the ADC fails.
  * @param	adc_handle*: Pointer to ADC handle object
  * @param	float*: Pointer to float to store temperature
  *
  * @retval	Sensor error
  */
-int read_temp(adc_handle* handle, float* temp)
+temp_error read_temp(adc_handle* handle, float* temp)
 {
-
-	if(get_temp_adc(handle, temp) == TEMP_ADC_FAIL)
-	{
-
-		if(get_temp_internal(temp) == TEMP_INTERNALSENSOR_FAIL)
-		{
-			return TEMP_INTERNALSENSOR_FAIL;
-		}
-
-		return TEMP_ADC_FAIL;
-	}
-
-	return TEMP_OK;
+  if(get_temp_adc(handle, temp) == TEMP_ADC_FAIL)
+  {
+    if(get_temp_internal(temp) == TEMP_INTERNALSENSOR_FAIL)
+    {
+      return TEMP_INTERNALSENSOR_FAIL;
+    }
+    return TEMP_ADC_FAIL;
+  }
+  return TEMP_OK; 
 }
 
 /**
@@ -65,19 +79,63 @@ int read_temp(adc_handle* handle, float* temp)
  *
  * @retval	Sensor error
  */
-int read_temp_adc(adc_handle* handle, float* temp)
+temp_error read_temp_adc(adc_handle* handle, float* temp)
 {
-	//READ V_REF ADC
+  if (HAL_ADC_Start(*handle) == HAL_BUSY)
+  {
+    printf("ADC busy, can't read.\n");
+    return TEMP_ADC_FAIL;
+  }
+  else
+  {
+    // Es posible leer de ambos ADCs al mismo tiempo, usando dos canales
+    // considerar si esto es necesario. Lo sera solamente si el tiempo de
+    // lectura del ADC empieza a afectar negativamente la lectura del bus
+    // CAN (La lectura de humedad no es problema, ya que para esta se
+    // utilizaran interrupts y callbacks).
 
-	//READ LM35 ADC
-	//10 mV/°C
-	//12 bits
-	//VER DOCUMENTACIÓN, AHI ESTA EL CALCULO
-	*temp = 0.1;
+    //READ V_REF ADC
+    int v_ref_read;
+    if(HAL_ADC_PollForConversion(handle, ADC_TIMEOUT) == HAL_OK)
+    {
+      v_ref_read = HAL_ADC_GetValue(handle);
+    }
+    else
+    {
+      printf("ADC Timed out reading Vref\n");
+      return TEMP_ADC_FAIL;
+    }
 
-	*temp = 1;
+    //READ LM35 ADC
+    int temp_reading;
+    if(HAL_ADC_PollForConversion(handle, ADC_TIMEOUT) == HAL_OK)
+    {
+      temp_reading = HAL_ADC_GetValue(handle);
+    }
+    else
+    {
+      printf("ADC Timed out reading external temp sensor\n");
+      return TEMP_ADC_FAIL;
+    }
 
-	return TEMP_OK;
+    //Calcular temperatura en grados centigrados
+    //Referirse a la documentación 'Software_Instrumentacion.pdf'
+    //del 7 de abril de 2021
+    //constexpr se especifica en el estandar C++11
+    constexpr float v_supply_sqr = 3.3*3.3;
+    constexpr float v_ref = 1.25;
+    constexpr float v_temp_grad = 0.01;
+    constexpr float resolution = 4096; //2^12
+
+    //temp = V / V/°C = (v_uncal * read_value / 4096) / 10 mV/°C 
+    //V_read_ref = 1.25 = V_uncalibrated * read_value / 4096
+    // por lo tanto, V_uncalibrated = 1.25 * 4096 / read_value
+    float v_uncal = (v_ref * resolution) / v_ref_read;
+    float temp_deg_c = (v_uncal * temp_readomg / resolution) / 0.01;
+    *temp = temp_deg_c;
+    
+    return TEMP_OK;
+    }
 }
 
 /**
@@ -86,10 +144,12 @@ int read_temp_adc(adc_handle* handle, float* temp)
  *
  * @retval	Sensor error
  */
-int read_temp_internal(float* temp)
+temp_error read_temp_internal(float* temp)
 {
 	return TEMP_OK;
 }
+
+
 
 /*
  *

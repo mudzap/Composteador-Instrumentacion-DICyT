@@ -180,8 +180,11 @@ hum_error read_rh(tim_handle* handle, float* rh)
     }
   else
     {
-      //Establece callback
-      
+      // Establece callback
+      // Hay que definir USE_HAL_TIM_REGISTER_CALLBACKS a 1 en el compilador
+      // para que funcione los callbacks de usuario.
+      HAL_TIM_RegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID, init_tim_callback, handle);
+      HAL_TIM_RegisterCallback(handle, HAL_TIM_IC_CAPTURE_CB_ID, init_tim_callback, handle);
     }
 
 }
@@ -191,12 +194,18 @@ hum_error read_rh(tim_handle* handle, float* rh)
  */
 void init_tim_callback(tim_handle* handle)
 {
-  
+  //Starts timer
+  HAL_TIM_RegisterCallback(
+    handle, HAL_TIM_TRIGGER_CB_ID,
+    recursive_tim_callback, handle, 0);
+  HAL_TIM_RegisterCallback(
+    handle, HAL_TIM_IC_CAPTURE_CB_ID,
+    recursive_tim_callback, handle, 0);
 }
 
 void recursive_tim_callback(tim_handle* handle, int sample)
 {
-  
+  timer_samples[sample] = 
 }
 
 /*

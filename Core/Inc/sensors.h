@@ -11,7 +11,7 @@
 #include "stm32f0xx_hal.h"
 #include <stdio.h>
 
-#define CLOCK_RATE 48000 /* Frecuencia del timer en kHz*/
+#define TIMER_CLOCK_RATE 48000000 /* Frecuencia del timer en Hz*/
 #define FREQ_LUT_SIZE 21 /* Numero de elementos de LUT */
 #define FREQ_LUT_INTERVAL 5 /* Intervalo de LUT en %RH */
 
@@ -72,7 +72,9 @@ temp_error read_temp_adc(adc_handle* handle, float* temp);
 temp_error read_temp_internal(float* temp);
 
 hum_error read_rh(tim_handle* handle, float* rh);
-void init_tim_callback(tim_handle* handle);
-void recursive_tim_callback(tim_handle* handle, int sample);
+void init_tim_callback(float* rh, tim_handle* handle);
+void recursive_tim_callback(float* rh, tim_handle* handle, int sample);
+
+float lerp_rh_from_lut(float freq);
 
 #endif

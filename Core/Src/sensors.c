@@ -169,24 +169,46 @@ temp_error read_temp_internal(float* temp)
  */
 hum_error read_rh(tim_handle* handle, float* rh)
 {
-
-  // Es posible hacer uso de DMA para inyectar directamente el valor del timer
-  // Revisar si handle->Channel si da los valores TIM_CHANNEL_N correctos para
-  // la función
-  if(HAL_TIM_IC_Start(handle, handle->Channel) != HAL_OK)
-    {
-      return HUM_TIM2_FAIL;
-      printf("Timer busy, not reading RH until second callback is called\n");
-    }
+  if(handle->HAL_TIM_StateTypeDef != HAL_OK)
+  {
+    printf("Timer still getting freq values\n");
+    return HUM_TIM2_FAIL;
+  }
   else
-    {
-      // Establece callback
-      // Hay que definir USE_HAL_TIM_REGISTER_CALLBACKS a 1 en el compilador
-      // para que funcione los callbacks de usuario.
-      HAL_TIM_RegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID, init_tim_callback, handle);
-      HAL_TIM_RegisterCallback(handle, HAL_TIM_IC_CAPTURE_CB_ID, init_tim_callback, handle);
-    }
+  {
+    float avg_freq = 0.f;
 
+    // t_real = timer_val * 1/clock_rate, ergo:
+    // f_real = clock_rate / timer_val
+    for(int i = 1; i <= MAX_TIMER_SAMPLES; i++)
+    {
+      uint32_t time_diff;
+      uint32_t time_n = timer_samples[i];
+      uint32_t time_n_m1 = timer_samples[i-1];
+      
+      time_diff = (time_n > time_n_m1) ?     /* Como manejar overflows en los timers? */
+	time_n - time_n_m1 :                 /* t[n] - t[n-1] */
+	time_n + (0xFFFFFFFF - time_n_m1);   /* t[n] + ((2^32-1) - t[n-1]) */
+
+      avg_freq += TIMER_CLOCK_RATE/time_diff;
+    }
+    avg_freq /= MAX_TIMER_SAMPLES;
+    
+    *rh = lerp_rh_from_lut(avg_freq);
+
+    // Es posible hacer uso de DMA para inyectar directamente el valor del timer
+    // Revisar si handle->Channel si da los valores TIM_CHANNEL_N correctos para
+    // la función
+    
+    // Establece callback
+    // Hay que definir USE_HAL_TIM_REGISTER_CALLBACKS a 1 en el compilador
+    // para que funcione los callbacks de usuario.
+    TIM_ITRx_SetConfig(handle->Instance, TIM_TS_ETRF); /* Use external trigger input */
+    TIM_ETR_SetConfig(handle->Instance, TIM_ETRPRESCALER_DIV1, TIM_ETRPOLARITY_NONINVERTED); /* Conf ext trig*/
+    HAL_TIM_RegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID, init_tim_callback, handle);
+
+    return HUM_OK;
+  }
 }
 
 /*  Ver documentación 20 de abril, 2021
@@ -198,105 +220,45 @@ void init_tim_callback(tim_handle* handle)
   HAL_TIM_RegisterCallback(
     handle, HAL_TIM_TRIGGER_CB_ID,
     recursive_tim_callback, handle, 0);
-  HAL_TIM_RegisterCallback(
-    handle, HAL_TIM_IC_CAPTURE_CB_ID,
-    recursive_tim_callback, handle, 0);
+  HAL_TIM_Base_Start_IT(handle);
+  
 }
 
 void recursive_tim_callback(tim_handle* handle, int sample)
 {
-  timer_samples[sample] = 
+  timer_samples[sample] = TIM_GetCounter(handle->Instance);
+
+
+  if(true)
+    {
+      HAL_TIM_UnRegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID);
+    }
 }
-
-/*
- *
- * 	TODO DE AQUI EN ADELANTE NO HA SIDO TRADUCIDO
- * 	PERO SI PARCIALMENTE DOCUMENTADO
- *
- */
-
-
-//ISR( ANA_COMP )
-//Alternativa superior, pero pierde compatibilidad con PLC
-//Si surge el interes a que quiero decir, revisar la datasheet del
-//ATtiny 84, sección 15: 'Analog Comparator'
-/*
-ISR( INT0_vect )
-{
-  //WOW
-  //if (conditionChecker.checkConditional(cond.tostr() == 'true' && cond.tostr() != 'false'))
-  //no hagan esto pls
-  trigger();
-}
-
-void trigger() {
-  //STOP TIMER
-  GTCCR |= (1 << TSM) | (1 << PSR10);
-
-  //DISABLE INTERRUPTS
-  cli();
-
-  uint16_t timerValue = 0;
-  timerValue |= (TCNT1L | (TCNT1H << 8));
-  //AJUSTA VALOR DE TIMER
-  timerValue += 4;
-
-  discharge();
-
-  //QUIZA SEAN SUFICIENTES OPERACIONES DE PUNTO FLOTANTE
-  //PARA DAR TIEMPO PARA QUE SE DESCARGE EL SENSOR
-  //IGUAL EL TIEMPO DE CONVERSION DEL ADC PARA EL SENSOR
-  //DE TEMPERATURA, DEBERIA DE DAR TIEMPO SUFICIENTE
-  //PROBAR CON OSCILOSCOPIO DE TODAS FORMAS
-  RH = interpRH(timerValue);
-}
-
-
-// DUH
-void getTemp() {
-  //READ ADC
-  ADCSRA |= (1 << ADSC);
-  uint16_t reading = 0;
-
-  //WAIT FOR READING
-  //DON'T USE ADC INTERRUPT AS TO GIVE TIMER PRIORITY
-  while (ADCSRA & (1<<ADSC)) {}
-
-  //GET ADC
-  reading |= (ADCL | (ADCH << 8));
-
-  //TRANSLATE TO VOLTAGE
-  temp = (REF_V * reading)/1024.f;
-}
-*/
 
 /**
  * @brief	Obtains and returns the RH% by means of interpolation by using data
- * 			from the LUT.
- * @param	uint32_t: Timer data
- * @param	float*: Pointer to float to store RH%
- *
- * @retval	Sensor error
+ * 		from the LUT.
+ * @param	float: Freq data
+ * @retval	float: RH value
  */
-/*
-int interpRH(uint32_t timerValue, float* rh) {
-  double realTime = timerValue*CLOCK_RATE;
-  double charge = realTime*CHARGE_CURRENT;
-  double cap = charge/(SUPPLY_V - REF_V);
+float lerp_rh_from_lut(float freq)
+{
 
-  //FIND WHICH C VALUES IS IT SURROUNDED WITH IN THE LUT
-  //IF IT DOESNT FIT LUT, GIVE MIN OR MAXIMUM RH VALUE
-  //O(N) COMPLEXITY? NO PROBLEM
+  // Encuentra los valores por los que esta rodeado el valor de frec en la LUT
+  // Si no cabe, da un valor extremo (0, o 100)
+  // La complejidad O(N) no es problema, pienso yo
+  // Seria interesante almacenar la LUT en otras estructuras de datos
+  // Pero no pienso esto sea gran problema
   int il = 0;
   int ig = 0;
-  if(cap < LUT[0]) {
+  if(freq < freq_lut[0]) {
     return 0.f;
   }
-  else if (cap > LUT[LUT_SIZE-1]) {
+  else if (freq > freq_lut[FREQ_LUT_SIZE-1]) {
     return 100.f;
   }
   else {
-    while(cap < LUT[ig]) {
+    while(freq < freq_lut[ig]) {
       ig++;
     }
   }
@@ -304,8 +266,6 @@ int interpRH(uint32_t timerValue, float* rh) {
   il = ig - 1;
 
   double new_rh = 0;
-  new_rh = ( (cap - LUT[il]) * (ig*5.f - il*5.f) ) / (LUT[ig] - LUT[il]) + il*5.f;
-  *rh = new_rh;
+  new_rh = ( (freq - freq_lut[il]) * (ig*5.f - il*5.f) ) / (freq_lut[ig] - freq_lut[il]) + il*5.f;
+  return new_rh;
 }
-
-*/

@@ -15,25 +15,27 @@
 #define FREQ_LUT_SIZE 21 /* Numero de elementos de LUT */
 #define FREQ_LUT_INTERVAL 5 /* Intervalo de LUT en %RH */
 
+#define MAX_TIMER_SAMPLES 3 /* Muestreos del timer para adquirir frecuencia */
+
 #define ADC_TIMEOUT 100 /* Tiempo maximo para realizar un muestro */
 
 typedef enum sensor_error {
-  ALL_OK,
-  TEMP_SENSOR_FAIL,
-  HUM_SENSOR_FAIL
+  ALL_OK = 0,
+  TEMP_SENSOR_FAIL = 1,
+  HUM_SENSOR_FAIL = 2
 } sensor_error;
 
 typedef enum temp_error {
-  TEMP_INTERNALSENSOR_FAIL,
-  TEMP_ADC_FAIL,
-  TEMP_OK
+  TEMP_OK = 0,
+  TEMP_INTERNALSENSOR_FAIL = 1,
+  TEMP_ADC_FAIL = 2
 } temp_error;
 
 typedef enum hum_error {
-  HUM_TOO_LARGE,
-  HUM_TOO_SMALL,
-  HUM_TIM2_FAIL,
-  HUM_OK
+  HUM_OK = 0,
+  HUM_TOO_LARGE = 1,
+  HUM_TOO_SMALL = 2,
+  HUM_TIM2_FAIL = 4
 } hum_error;
 
 
@@ -59,6 +61,8 @@ static const float freq_lut[FREQ_LUT_SIZE] = {
     6260, 6210, -1.0
 };
 
+static uint32_t timer_samples[MAX_TIMER_SAMPLES];
+
 static float rel_humidity = -1.f;
 static float temperature = -1.f;
 
@@ -66,5 +70,9 @@ sensor_error read_sensors(sensors_handle* handle, float* temp, float* rh);
 temp_error read_temp(adc_handle* handle, float* temp);
 temp_error read_temp_adc(adc_handle* handle, float* temp);
 temp_error read_temp_internal(float* temp);
+
+hum_error read_rh(tim_handle* handle, float* rh);
+void init_tim_callback(tim_handle* handle);
+void recursive_tim_callback(tim_handle* handle, int sample);
 
 #endif

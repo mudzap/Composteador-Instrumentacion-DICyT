@@ -1,3 +1,4 @@
+
 /**
  * @file 	can.c
  * @brief	Abstracts read and write functionality of the CAN bus

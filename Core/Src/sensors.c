@@ -37,10 +37,10 @@
 sensor_error read_sensors(sensors_handle* handle, float* temp, float* rh)
 {
   
-  temp_read_error = get_temp(&handle->adc_handle);
-  rh_read_error = get_rh(&handle->tim_handle);
+  temp_error temp_read_error = read_temp(&handle->adc);
+  hum_error rh_read_error = read_rh(&handle->htim2);
 
-  sensor_error_flags = 0;
+  sensor_error sensor_error_flags = ALL_OK;
   if(temp_read_error != TEMP_OK) {
     sensor_error_flags |= TEMP_SENSOR_FAIL;  
   }
@@ -48,7 +48,7 @@ sensor_error read_sensors(sensors_handle* handle, float* temp, float* rh)
     sensor_error_flags |= HUM_SENSOR_FAIL;
   }
 
-  return sensor_error_flags
+  return sensor_error_flags;
 }
 
 /**
@@ -61,15 +61,22 @@ sensor_error read_sensors(sensors_handle* handle, float* temp, float* rh)
  */
 temp_error read_temp(adc_handle* handle, float* temp)
 {
-  if(get_temp_adc(handle, temp) == TEMP_ADC_FAIL)
+  temp_error error_flags = TEMP_OK;
+  
+  if(read_temp_adc(handle, temp) == TEMP_ADC_FAIL)
   {
+
+#ifdef USE_INTERNAL_TEMP_SENSOR_AS_FALLBACK
     if(get_temp_internal(temp) == TEMP_INTERNALSENSOR_FAIL)
     {
-      return TEMP_INTERNALSENSOR_FAIL;
+      error_flags |=  TEMP_INTERNALSENSOR_FAIL;
     }
-    return TEMP_ADC_FAIL;
+#endif
+    
+    error_flags |= TEMP_ADC_FAIL;
+    
   }
-  return TEMP_OK; 
+  return error_flags; 
 }
 
 /**
@@ -81,7 +88,7 @@ temp_error read_temp(adc_handle* handle, float* temp)
  */
 temp_error read_temp_adc(adc_handle* handle, float* temp)
 {
-  if (HAL_ADC_Start(*handle) == HAL_BUSY)
+  if (HAL_ADC_Start(handle) == HAL_BUSY)
   {
     printf("ADC busy, can't read.\n");
     return TEMP_ADC_FAIL;
@@ -122,22 +129,23 @@ temp_error read_temp_adc(adc_handle* handle, float* temp)
     //Referirse a la documentación 'Software_Instrumentacion.pdf'
     //del 7 de abril de 2021
     //constexpr se especifica en el estandar C++11
-    constexpr float v_supply_sqr = 3.3*3.3;
-    constexpr float v_ref = 1.25;
-    constexpr float v_temp_grad = 0.01;
-    constexpr float resolution = 4096; //2^12
+    const float v_supply_sqr = 3.3*3.3;
+    const float v_ref = 1.25;
+    const float v_temp_grad = 0.01;
+    const float resolution = 4096; //2^12
 
     //temp = V / V/°C = (v_uncal * read_value / 4096) / 10 mV/°C 
     //V_read_ref = 1.25 = V_uncalibrated * read_value / 4096
     // por lo tanto, V_uncalibrated = 1.25 * 4096 / read_value
     float v_uncal = (v_ref * resolution) / v_ref_read;
-    float temp_deg_c = (v_uncal * temp_readomg / resolution) / 0.01;
+    float temp_deg_c = (v_uncal * temp_reading / resolution) / 0.01;
     *temp = temp_deg_c;
     
     return TEMP_OK;
-    }
+  }
 }
 
+#ifdef USE_INTERNAL_TEMP_SENSOR_AS_FALLBACK
 /**
  * @brief	Reads data from the internal temperature sensor,
  * @param	float*: Pointer to float to store temperature
@@ -148,8 +156,48 @@ temp_error read_temp_internal(float* temp)
 {
 	return TEMP_OK;
 }
+#endif
 
 
+/**
+ * @brief     Reads RH by translating it from the external oscillating
+ *            frequency of the external RC oscillator.
+ * @param     timer handle*: Pointer to timer handle which will
+ * @param     float*: Pointer to float to store RH
+ *
+ * @retval    hum sensor error
+ */
+hum_error read_rh(tim_handle* handle, float* rh)
+{
+
+  // Es posible hacer uso de DMA para inyectar directamente el valor del timer
+  // Revisar si handle->Channel si da los valores TIM_CHANNEL_N correctos para
+  // la función
+  if(HAL_TIM_IC_Start(handle, handle->Channel) != HAL_OK)
+    {
+      return HUM_TIM2_FAIL;
+      printf("Timer busy, not reading RH until second callback is called\n");
+    }
+  else
+    {
+      //Establece callback
+      
+    }
+
+}
+
+/*  Ver documentación 20 de abril, 2021
+ *  Lectura_Humedad.pdf
+ */
+void init_tim_callback(tim_handle* handle)
+{
+  
+}
+
+void recursive_tim_callback(tim_handle* handle, int sample)
+{
+  
+}
 
 /*
  *

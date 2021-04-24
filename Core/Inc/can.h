@@ -21,11 +21,9 @@ CAN permite la transmisión de paquetes con información de 0 a 8 bytes, o sea, 
 Aqui no es necesaria la precisión de 8 bytes, asi que se optara por un solo paquete.
 */
 
-/* INVESTIGAR: EN QUE UNIDADES? */
-//#define CAN_TX_TIMEOUT 10
-//PARECE SER QUE NO SE UTILIZA EN EL HAL MODERNO, QUIZA NO SEA PROBLEMA
-#define CAN_MAX_BYTES 8
-#define NO_DATA 0x00U
+#define CAN_MAX_BYTES 8 /**> @def Defines max amount of bytes transfered in a CAN packet */
+
+#define NO_DATA 0x00U /**> @def Alias for code readability purposes */
 
 /* POSIBLEMENTE REDUNDANTE
 typedef enum can_error {
@@ -37,6 +35,9 @@ typedef enum can_error {
 } can_error;*/
 
 //Usar banderas de bits
+/**
+ * @enum Commands that the control panel can emit to sensors
+ */
 typedef enum can_control {
   CAN_CONTROL_START_TX,
   CAN_CONTROL_STOP_TX,
@@ -44,16 +45,13 @@ typedef enum can_control {
   CAN_CONTROL_STOP_READING
 } can_error;
 
-
-typedef CAN_TxHeaderTypeDef can_tx_packet;
-typedef CAN_RxHeaderTypeDef can_rx_packet;
-
-/* Para el bus can, solamente basta con typedef */
-typedef CAN_HandleTypeDef can_handle;
+typedef CAN_TxHeaderTypeDef can_tx_packet; /**> @typedef Alias for CAN_TxHeaderTypeDef */
+typedef CAN_RxHeaderTypeDef can_rx_packet; /**> @typedef Alias for CAN_RxHeaderTypeDef */
+typedef CAN_HandleTypeDef can_handle; /**> @brief Alias for CAN_HandleTypeDef */
 
 /* Almacena mailboxes activos */
 static uint32_t tx_mailboxes = 0;
-static uint32_t rx_fifo = 0;
+//static uint32_t rx_fifo = 0;
 
 uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes);
 uint32_t can_get_from_fifo(can_handle* handle, uint8_t* data[]);

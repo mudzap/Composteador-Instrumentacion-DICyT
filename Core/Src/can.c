@@ -20,7 +20,7 @@
 uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes)
 {
   can_tx_packet packet;
-  packet.StdId = 0x02; //Identificador estandar con prioridad 2
+  packet.StdId = SENSOR_OUTPUT_CAN_STD_ID; //Identificador estandar con prioridad 2
   packet.IDE = CAN_ID_STD; //Identificador estandar
   packet.RTR = CAN_RTR_DATA; //Tipo de paquete (Data frame / Remote frame)
   packet.DLC = bytes; //Tamaño del paquete
@@ -60,29 +60,62 @@ uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes)
  */
 uint32_t can_get_from_fifo(can_handle* handle, uint8_t* data[])
 {
-	can_rx_packet packet;
+  can_rx_packet packet;
+  uint8_t[CAN_MAX_BYTES] data_input;
 
-	uint32_t rx_fill_level;
-	if( (rx_fill_level = HAL_CAN_GetRxFifoFillLevel(handle, rx_fifo)) > 0)
+  // Hay que revisar como manejar multiples FIFOS
+  uint32_t rx_fill_level;
+  if( (rx_fill_level = HAL_CAN_GetRxFifoFillLevel(handle, CAN_RX_FIFO0)) > 0)
+  {
+    for(int i = 0; i < rx_fill_level; i++)
+    {
+      if(HAL_CAN_GetRxMessage(handle, rx_fifo, &packet, data[i]) != HAL_OK)
+      {
+	/* FAILED TO RECEIVE PACKET */
+	printf("CAN-RX: Failed to receive packet\n");
+	*data[i] = NO_DATA;
+      }
+      else
+      {
+	/* PARSE PACKET */
+	const int identifier = packet.StdId;
+	const int id_type = packet.IDE;
+	const int packet_type =  packet.RTR;
+	const int bytes = packet.DLC;
+
+	bool should_parse = true;
+	if(id_type != CAN_ID_STD)
 	{
-		for(int i = 0; i < rx_fill_level; i++)
-		{
-			if(HAL_CAN_GetRxMessage(handle, rx_fifo, &packet, data[i]) != HAL_OK)
-			{
-				/* FAILED TO RECEIVE PACKET */
-				printf("CAN-RX: Failed to receive packet\n");
-				*data[i] = NO_DATA;
-			}
-			else
-			{
-				/* PARSE PACKET */
-				// Data already on array
-				//packet->DLC
-				//packet->...
-			}
-
-		}
+	  printf("Utilize el identificador CAN estandar, no el extendido\n");
+	  should_parse = false;
+	}
+	if(packet_type != CAN_RTR_REMOTE)
+	{
+	  printf("Sensor recibio datos en vez de una petición. Ignorando datos\n");
+	  should_parse = false;	  
+	}
+	if(identifier != CONTROL_PANEL_CAN_STD_ID)
+	{
+	  printf("Sensor recibio paquete de ID que no es del panel de control\n");
+	  should_parse = false;	  
 	}
 
-	return handle->ErrorCode;
+	if(should_parse)
+	{
+	  for(int j = 0; j < bytes; j++)
+	    data[j] = data_input[j];
+	}
+	else
+	{
+	  printf("Not parsing data, deleting it\n");
+	  for(int j = 0; j < bytes; j++)
+	    data[j] = NO_DATA;    
+	}
+	
+      }
+
+    }
+  }
+
+  return handle->ErrorCode;
 }

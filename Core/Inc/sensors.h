@@ -11,26 +11,33 @@
 #include "stm32f0xx_hal.h"
 #include <stdio.h>
 
-#define TIMER_CLOCK_RATE 48000000 /* Frecuencia del timer en Hz*/
-#define FREQ_LUT_SIZE 21 /* Numero de elementos de LUT */
-#define FREQ_LUT_INTERVAL 5 /* Intervalo de LUT en %RH */
+#define TIMER_CLOCK_RATE 48000000 /**> @def Timer clock rate in Hz */
+#define FREQ_LUT_SIZE 21 /**> @def Number of elements inside RH LUT table */
+#define FREQ_LUT_INTERVAL 5 /**> @def Interval length of RH in the LUT table */
+#define MAX_TIMER_SAMPLES 3 /**> @def Samples in order to determine frequency*/
+#define ADC_TIMEOUT 100 /**> @def ADC timeout time */
 
-#define MAX_TIMER_SAMPLES 3 /* Muestreos del timer para adquirir frecuencia */
-
-#define ADC_TIMEOUT 100 /* Tiempo maximo para realizar un muestro */
-
+/**
+ * @enum Sensors error states
+ */
 typedef enum sensor_error {
   ALL_OK = 0,
   TEMP_SENSOR_FAIL = 1,
   HUM_SENSOR_FAIL = 2
 } sensor_error;
 
+/**
+ * @enum Temperature sensor error states
+ */
 typedef enum temp_error {
   TEMP_OK = 0,
   TEMP_INTERNALSENSOR_FAIL = 1,
   TEMP_ADC_FAIL = 2
 } temp_error;
 
+/**
+ * @enum Humidity sensor error states
+ */
 typedef enum hum_error {
   HUM_OK = 0,
   HUM_TOO_LARGE = 1,
@@ -39,12 +46,12 @@ typedef enum hum_error {
 } hum_error;
 
 
-/*
- * para manejar los handles fuera del contexto de main, los almacenamos en un struct para
- * su facil manejo
+typedef ADC_HandleTypeDef adc_handle; /**> @typedef Alias for ADC_HandleTypeDef */
+typedef TIM_HandleTypeDef tim_handle; /**> @typedef Alias for TIM_HandleTypeDef */
+
+/**
+ * @struct Struct for encapsulation of handles relevant to sensor readings
  */
-typedef ADC_HandleTypeDef adc_handle;
-typedef TIM_HandleTypeDef tim_handle;
 typedef struct sensors_handle {
   adc_handle adc;
   tim_handle htim2;
@@ -62,9 +69,6 @@ static const float freq_lut[FREQ_LUT_SIZE] = {
 };
 
 static uint32_t timer_samples[MAX_TIMER_SAMPLES];
-
-static float rel_humidity = -1.f;
-static float temperature = -1.f;
 
 sensor_error read_sensors(sensors_handle* handle, float* temp, float* rh);
 temp_error read_temp(adc_handle* handle, float* temp);

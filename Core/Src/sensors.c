@@ -248,7 +248,7 @@ float lerp_rh_from_lut(float freq)
   // Si no cabe, da un valor extremo (0, o 100)
   // La complejidad O(N) no es problema, pienso yo
   // Seria interesante almacenar la LUT en otras estructuras de datos
-  // Pero no pienso esto sea gran problema
+  // como un arbol binario, pero no pienso esto sea gran problema
   int il = 0;
   int ig = 0;
   if(freq < freq_lut[0]) {

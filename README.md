@@ -13,13 +13,26 @@ Software para el composteador desarrollado en la DICyT.
   - can.h
   - sensors.h
 ``` 
+
+### Compilación
+
+Se requeriran los siguientes defines en la compilación:
+
+```
+USE_HAL_TIM_REGISTER_CALLBACKS 1 /* Para el uso de callbacks definidos por el usuario y no los por defecto. */
+SENSOR_OUTPUT_CAN_STD_ID 0xXX /* Para identificar el sensor especifico del que se manda el dato */
+OTHER_SENSOR_CAN_STD_ID 0xXX /* Para identificar datos del otro sensor, que seran ignorados a favor de la señal del panel de control principal */
+CONTROL_PANEL_CAN_STD_ID 0xXX /* Para identificar mensajes del panel de control principal */
+```
+Por el momento, el identificador del otro sensor es redundante.
+
 ### TODO
+- Hacer uso de multiples FIFOs al recibir datos (¿Es necesario en primer lugar?)
+- Implementar función Error_Handler() adecuadamente.
+- Usar banderas de bits al reportar errores, o comandos de control
 
-- Establecer parametros de la interfaz CAN
-- Implementar comunicación CAN
-- Implementer lectura de sensores (Traducir programa despretijado)
 
-## Integrantes
+### Integrantes
 
 - Iván Guillermo Peña Flores (mudzap)
 - Luis Ignacio Velásquez Casado 

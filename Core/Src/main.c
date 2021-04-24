@@ -112,8 +112,23 @@ int main(void)
   MX_CAN_Init();
   MX_ADC_Init();
   MX_TIM2_Init();
+
   /* USER CODE BEGIN 2 */
 
+  /* Copia handles al struct del usuario */
+  sensors_handle sensors_h;
+  sensors_h.adc = hadc;
+  sensors_h.htim2 = htim2;
+
+  /* Datos de lectura */
+  float temp = -1;
+  float rh = -1;
+
+  /* Almacen de datos para CAN */
+  uint8_t data[CAN_MAX_BYTES];
+  for (int i = 0; i < CAN_MAX_BYTES; i++)
+    data[i] = 0;
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -121,7 +136,13 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+    
+    /* Recibir señal CAN */
+    
+    /* Adquisición de datos */
 
+    /* Emitir señal CAN */
+    
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

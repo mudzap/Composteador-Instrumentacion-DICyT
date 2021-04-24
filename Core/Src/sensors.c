@@ -37,8 +37,8 @@
 sensor_error read_sensors(sensors_handle* handle, float* temp, float* rh)
 {
   
-  temp_error temp_read_error = read_temp(&handle->adc);
-  hum_error rh_read_error = read_rh(&handle->htim2);
+  temp_error temp_read_error = read_temp(&handle->adc, temp);
+  hum_error rh_read_error = read_rh(&handle->htim2, rh);
 
   sensor_error sensor_error_flags = ALL_OK;
   if(temp_read_error != TEMP_OK) {
@@ -169,7 +169,7 @@ temp_error read_temp_internal(float* temp)
  */
 hum_error read_rh(tim_handle* handle, float* rh)
 {
-  if(handle->HAL_TIM_StateTypeDef != HAL_OK)
+  if(handle->State != HAL_OK)
   {
     printf("Timer still getting freq values\n");
     return HUM_TIM2_FAIL;
@@ -204,32 +204,39 @@ hum_error read_rh(tim_handle* handle, float* rh)
     // Hay que definir USE_HAL_TIM_REGISTER_CALLBACKS a 1 en el compilador
     // para que funcione los callbacks de usuario.
     TIM_ITRx_SetConfig(handle->Instance, TIM_TS_ETRF); /* Use external trigger input */
-    TIM_ETR_SetConfig(handle->Instance, TIM_ETRPRESCALER_DIV1, TIM_ETRPOLARITY_NONINVERTED); /* Conf ext trig*/
-    HAL_TIM_RegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID, init_tim_callback, handle);
 
-    return HUM_OK;
+    //FILTRO ES UN PLACEHOLDER, VER INTERRUPTS
+    TIM_ETR_SetConfig(handle->Instance, TIM_ETRPRESCALER_DIV1, TIM_ETRPOLARITY_NONINVERTED, 0x00); /* Conf ext trig*/
+    HAL_TIM_RegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID, init_tim_callback);
+
   }
+
+  return HUM_OK;
+
 }
 
 /*  Ver documentación 20 de abril, 2021
  *  Lectura_Humedad.pdf
  */
+static int callback_iteration;
 void init_tim_callback(tim_handle* handle)
 {
   //Starts timer
   HAL_TIM_RegisterCallback(
     handle, HAL_TIM_TRIGGER_CB_ID,
-    recursive_tim_callback, handle, 0);
+    recursive_tim_callback);
+  callback_iteration = 0;
   HAL_TIM_Base_Start_IT(handle);
   
 }
 
-void recursive_tim_callback(tim_handle* handle, int sample)
+void recursive_tim_callback(tim_handle* handle)
 {
-  timer_samples[sample] = TIM_GetCounter(handle->Instance);
+  callback_iteration++;
+  timer_samples[callback_iteration] = TIM_GetCounter(handle->Instance);
 
-
-  if(true)
+  // TODO
+  if(1)
     {
       HAL_TIM_UnRegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID);
     }

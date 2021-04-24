@@ -11,9 +11,9 @@
   * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
-  * This software component is licensed by ST under BSD 3-Clause license, */
-  /* * the "License"; You may not use this file except in compliance with the */
-  /* * License */. You may obtain a copy of the License at:
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
   *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
@@ -31,7 +31,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef enum Error_State {
-	ALL_OK,
+	//ALL_OK, /* Hack rapido, este enum probablemente es redundante */
 	ADC_INIT_FAIL,
 	ADC_CHANNEL_0_FAIL,
 	ADC_VREF_FAIL,
@@ -112,7 +112,6 @@ int main(void)
   MX_CAN_Init();
   MX_ADC_Init();
   MX_TIM2_Init();
-
   /* USER CODE BEGIN 2 */
 
   /* Copia handles al struct del usuario */
@@ -136,13 +135,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    
-    /* Recibir señal CAN */
-    
-    /* Adquisición de datos */
 
-    /* Emitir señal CAN */
-    
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -241,9 +234,8 @@ static void MX_ADC_Init(void)
   {
     Error_Handler();
   }
-
   /* USER CODE BEGIN ADC_Init 2 */
-  HAL_ADCE1_Calibration_Start();
+
   /* USER CODE END ADC_Init 2 */
 
 }
@@ -299,7 +291,6 @@ static void MX_TIM2_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_IC_InitTypeDef sConfigIC = {0};
 
   /* USER CODE BEGIN TIM2_Init 1 */
 
@@ -319,21 +310,9 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
-  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }

@@ -71,13 +71,14 @@ static const float freq_lut[FREQ_LUT_SIZE] = {
 static uint32_t timer_samples[MAX_TIMER_SAMPLES];
 
 sensor_error read_sensors(sensors_handle* handle, float* temp, float* rh);
+
 temp_error read_temp(adc_handle* handle, float* temp);
 temp_error read_temp_adc(adc_handle* handle, float* temp);
 temp_error read_temp_internal(float* temp);
 
 hum_error read_rh(tim_handle* handle, float* rh);
-void init_tim_callback(float* rh, tim_handle* handle);
-void recursive_tim_callback(float* rh, tim_handle* handle, int sample);
+void init_tim_callback(tim_handle* handle);
+void recursive_tim_callback(tim_handle* handle);
 
 float lerp_rh_from_lut(float freq);
 

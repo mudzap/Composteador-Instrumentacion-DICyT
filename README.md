@@ -30,6 +30,7 @@ Por el momento, el identificador del otro sensor es redundante.
 - Hacer uso de multiples FIFOs al recibir datos (¿Es necesario en primer lugar?)
 - Implementar función Error_Handler() adecuadamente.
 - Usar banderas de bits al reportar errores, o comandos de control
+- Misc. Parte Eléctrica
 
 
 ### Integrantes

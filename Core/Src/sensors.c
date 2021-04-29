@@ -235,11 +235,11 @@ void recursive_tim_callback(tim_handle* handle)
   callback_iteration++;
   timer_samples[callback_iteration] = TIM_GetCounter(handle->Instance);
 
-  // TODO
-  if(1)
-    {
-      HAL_TIM_UnRegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID);
-    }
+  callback_iteration++;
+  if(callback_iteration >= MAX_TIMER_SAMPLES)
+  {
+    HAL_TIM_UnRegisterCallback(handle, HAL_TIM_TRIGGER_CB_ID);
+  }
 }
 
 /**

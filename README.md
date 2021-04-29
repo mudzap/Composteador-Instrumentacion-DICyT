@@ -1,6 +1,10 @@
 # Composteador-DICyT
 Software para el composteador desarrollado en la DICyT.
 
+HASTA QUE SEA POSIBLE PROTOTIPAR, ESTE REPOSITORIO SE MANTENDRA ASI
+SE ENFOCARA EN EL PANEL DE CONTROL PRINCIPAL POR EL MOMENTO
+REVISE EL TODO
+
 ### Archivos fuente
 
 ```
@@ -27,10 +31,11 @@ CONTROL_PANEL_CAN_STD_ID 0xXX /* Para identificar mensajes del panel de control 
 Por el momento, el identificador del otro sensor es redundante.
 
 ### TODO
+- Implementar ciclo principal del programa.
+- Implementar interrupt adecuado para el timer, falta prototipado para verificar el funcionamiento.
 - Hacer uso de multiples FIFOs al recibir datos (¿Es necesario en primer lugar?)
 - Implementar función Error_Handler() adecuadamente.
 - Usar banderas de bits al reportar errores, o comandos de control
-- Misc. Parte Eléctrica
 
 
 ### Integrantes

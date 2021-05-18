@@ -34,8 +34,8 @@ Por el momento, el identificador del otro sensor es redundante.
 - Implementar ciclo principal del programa.
 - Implementar interrupt adecuado para el timer, falta prototipado para verificar el funcionamiento.
 - Hacer uso de multiples FIFOs al recibir datos (¿Es necesario en primer lugar?)
-- Implementar función Error_Handler() adecuadamente.
-- Usar banderas de bits al reportar errores, o comandos de control
+- Implementar función Error_Handler() adecuadamente. (Posiblemente no necesario)
+- Usar banderas de bits al reportar errores, o comandos de control (Determinar por parte del panel principal).
 
 
 ### Integrantes

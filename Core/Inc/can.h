@@ -39,10 +39,10 @@ typedef enum can_error {
  * @enum Commands that the control panel can emit to sensors
  */
 typedef enum can_control {
-  CAN_CONTROL_START_TX,
-  CAN_CONTROL_STOP_TX,
-  CAN_CONTROL_START_READING,
-  CAN_CONTROL_STOP_READING
+  CAN_CONTROL_START_TX = 1,
+  CAN_CONTROL_STOP_TX = 2,
+  CAN_CONTROL_START_READING = 3,
+  CAN_CONTROL_STOP_READING = 4
 } can_error;
 
 typedef CAN_TxHeaderTypeDef can_tx_packet; /**> @typedef Alias for CAN_TxHeaderTypeDef */
@@ -50,7 +50,7 @@ typedef CAN_RxHeaderTypeDef can_rx_packet; /**> @typedef Alias for CAN_RxHeaderT
 typedef CAN_HandleTypeDef can_handle; /**> @brief Alias for CAN_HandleTypeDef */
 
 /* Almacena mailboxes activos */
-static uint32_t tx_mailboxes = 0;
+//static uint32_t tx_mailboxes = 0;
 //static uint32_t rx_fifo = 0;
 
 uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes);

@@ -26,7 +26,7 @@ uint32_t can_write_to_mailbox(can_handle* handle, uint8_t* data, int bytes)
   packet.DLC = bytes; //Tamaño del paquete
 
   if(bytes > CAN_MAX_BYTES) {
-	  printf("CAN-TX: Se intentaron enviar %d bytes, el maximo es %d.\n", bytes, CAN_MAX_BYTES);
+	  //printf("CAN-TX: Se intentaron enviar %d bytes, el maximo es %d.\n", bytes, CAN_MAX_BYTES);
 	  return handle->ErrorCode;
   }
 
@@ -86,17 +86,17 @@ uint32_t can_get_from_fifo(can_handle* handle, uint8_t* data[])
 	char should_parse = 1;
 	if(id_type != CAN_ID_STD)
 	{
-	  printf("Utilize el identificador CAN estandar, no el extendido\n");
+	  //printf("Utilize el identificador CAN estandar, no el extendido\n");
 	  should_parse = 0;
 	}
 	if(packet_type != CAN_RTR_REMOTE)
 	{
-	  printf("Sensor recibio datos en vez de una petición. Ignorando datos\n");
+	  //printf("Sensor recibio datos en vez de una petición. Ignorando datos\n");
 	  should_parse = 0;
 	}
 	if(identifier != CONTROL_PANEL_CAN_STD_ID)
 	{
-	  printf("Sensor recibio paquete de ID que no es del panel de control\n");
+	  //printf("Sensor recibio paquete de ID que no es del panel de control\n");
 	  should_parse = 0;
 	}
 

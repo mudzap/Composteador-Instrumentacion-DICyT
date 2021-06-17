@@ -16,6 +16,7 @@
  */
 
 #include "sensors.h"
+#include "stm32f0xx_it.h"
 
 /* ESTOY CONSIDERANDO CAMBIAR QUE RETORNEN POR COPIA, NO POR REFERENCIA, PARA ASI
  * EVITAR HACIENDO DEREFERENCIAS CONSTANTES, O DE OTRA FORMA, ALMACENARLO EN
@@ -145,7 +146,7 @@ temp_error read_temp_adc(adc_handle* handle, float* temp)
   }
 }
 
-#ifdef USE_INTERNAL_TEMP_SENSOR_AS_FALLBACK
+#ifdef USE_INTERNAL_TEMP_SENSOR_AS_FALLBACKs
 /**
  * @brief	Reads data from the internal temperature sensor,
  * @param	float*: Pointer to float to store temperature

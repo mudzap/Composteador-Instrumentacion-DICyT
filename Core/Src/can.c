@@ -8,6 +8,10 @@
  */
 
 #include "can.h"
+#include "comm_defs.h"
+
+/* Almacena mailboxes activos */
+static uint32_t tx_mailboxes = 0;
 
 /**
  * @brief	Writes the content from a data buffer into the mailbox, to be sent in the CAN bus

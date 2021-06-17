@@ -1,0 +1,3 @@
+[submodule "Core/Inc/Common"]
+	path = Core/Inc/Common
+	url = git@github.com:mudzap/Composteador-Instrumentacion-DICyT.git
